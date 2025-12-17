@@ -33,7 +33,7 @@ class CourseScraper:
         self.semester = config.get('semester', 'Học Kỳ II')
         
         # Support both single subject and multiple subjects
-        subjects = config.get('subjects', config.get('subject'))
+        subjects = config.get('subjects') or config.get('subject')
         if isinstance(subjects, str):
             self.subjects = [subjects]
         elif isinstance(subjects, list):
