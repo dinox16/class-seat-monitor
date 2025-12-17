@@ -1,26 +1,30 @@
+scraper:
+  headless: true
+  timeout: 30
+
+courses_to_monitor:
+  - code: "CS 403"
+    name: "Công Nghệ Phần Mềm"
+    url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=100&timespan=92&t=s"
+  
+  - code: "HIS 364"
+    name: "Lịch Sử Việt Nam"
+    url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=1860&timespan=92&t=s"
+  
+  - code: "ENG 217"
+    name: "English Communication"
+    url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=1076&timespan=92&t=s"
+
 telegram:
   bot_token: "${TELEGRAM_BOT_TOKEN}"
   chat_ids:
     - 5337351935
 
-monitoring:
-  interval_minutes: 5
-  target_url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_coursesearch"
-
-courses_to_monitor:
-  - "CS 403"
-  - "ENG 217"
-  - "HIS 362"
-
-scraper:
-  academic_year: "2025-2026"
-  semester: "Học Kỳ II"
-  subjects: ["CS", "ENG", "HIS"]
-  headless: true
-  timeout: 60
-
 database:
   path: "data/courses.db"
+
+monitoring:
+  interval_minutes: 5
 
 logging:
   level: "INFO"

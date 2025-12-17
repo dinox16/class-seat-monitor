@@ -30,10 +30,7 @@ class SeatMonitor:
         
         # Initialize scraper
         scraper_config = {
-            'target_url': self.config.target_url,
-            'academic_year': self.config.scraper_config.get('academic_year', '2025-2026'),
-            'semester': self.config.scraper_config.get('semester', 'Học Kỳ II'),
-            'subjects': self.config.scraper_config.get('subjects', self.config.scraper_config.get('subject', 'CS')),
+            'courses_to_monitor': self.config.courses_to_monitor,
             'headless': self.config.scraper_config.get('headless', True),
             'timeout': self.config.scraper_config.get('timeout', 30)
         }
@@ -62,7 +59,8 @@ class SeatMonitor:
                 course_code = course
                 threshold = 0
             else:
-                course_code = course.get('course_code')
+                # New format uses 'code', old format uses 'course_code'
+                course_code = course.get('code') or course.get('course_code')
                 threshold = course.get('notify_when_seats_gt', 0)
             
             if course_code:
@@ -146,7 +144,9 @@ class SeatMonitor:
         # Process each course
         changes_detected = 0
         for course in courses:
-            if self._process_course(course, monitored):
+            # Convert Course object to dictionary
+            course_dict = course.to_dict() if hasattr(course, 'to_dict') else course
+            if self._process_course(course_dict, monitored):
                 changes_detected += 1
         
         logger.info(f"Check complete. Changes detected: {changes_detected}")
@@ -184,7 +184,9 @@ class SeatMonitor:
             # Process each course
             changes_detected = 0
             for course in courses:
-                if self._process_course(course, monitored):
+                # Convert Course object to dictionary
+                course_dict = course.to_dict() if hasattr(course, 'to_dict') else course
+                if self._process_course(course_dict, monitored):
                     changes_detected += 1
             
             logger.info(f"Monitoring cycle complete. Changes detected: {changes_detected}")
@@ -317,12 +319,22 @@ class SeatMonitor:
     def test_scraper(self):
         """Test the scraper functionality."""
         print("🔍 Testing scraper...")
-        success = self.scraper.test_scraper()
-        
-        if success:
-            print("✅ Scraper test passed!")
-        else:
-            print("❌ Scraper test failed")
+        try:
+            courses = self.scraper.scrape_courses()
+            
+            if courses:
+                print(f"✅ Scraper test passed! Found {len(courses)} classes with available seats:")
+                for course in courses[:5]:  # Show first 5
+                    print(f"  • {course.code} - {course.class_name}")
+                    print(f"    Seats: {course.available_seats}, Room: {course.room}")
+                if len(courses) > 5:
+                    print(f"  ... and {len(courses) - 5} more")
+            else:
+                print("⚠️ Scraper ran successfully but found no classes with available seats")
+                
+        except Exception as e:
+            print(f"❌ Scraper test failed: {e}")
+            logger.error(f"Scraper test error: {e}", exc_info=True)
 
     def test_telegram(self):
         """Test Telegram notifications."""
