@@ -10,7 +10,7 @@ monitoring:
 courses_to_monitor:
   - course_code: "CS 403"
     notify_when_seats_gt: 0
-  - course_code: "HIS 362"
+  - course_code: "HIS 364"
     notify_when_seats_gt: 0
 
 scraper:
