@@ -107,46 +107,50 @@ class CourseScraper:
             wait = WebDriverWait(self.driver, 10)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
             
-            # Find all table rows
+            # Find all table rows with td elements
             rows = self.driver.find_elements(By.XPATH, "//table//tr[td]")
             
             logger.info(f"📊 Found {len(rows)} rows")
             
             for row in rows:
                 try:
+                    # Get all text in this row
+                    row_text = row.text
+                    
+                    # KEY LOGIC: If row contains "Hết chỗ" → SKIP!
+                    if "Hết chỗ" in row_text:
+                        logger.debug(f"   ❌ Row contains 'Hết chỗ' (skipped)")
+                        continue
+                    
+                    # No "Hết chỗ" → HAS SEATS!
                     cells = row.find_elements(By.TAG_NAME, "td")
                     
-                    if len(cells) < 10:
+                    # Need at least 8 cells for valid data
+                    if len(cells) < 8:
                         continue
                     
-                    # Extract cells
+                    # Extract data from cells
                     class_name = cells[0].text.strip()
                     registration_code = cells[1].text.strip()
-                    seats_text = cells[3].text.strip()  # Column "Số chỗ Còn lại" (Available seats)
-                    schedule = cells[6].text.strip()
-                    room = cells[7].text.strip()
-                    location = cells[8].text.strip()
-                    instructor = cells[9].text.strip()
                     
-                    # KEY LOGIC: If NOT "Hết chỗ" (No seats available) → NOTIFY!
-                    if "Hết chỗ" in seats_text:
-                        logger.info(f"   ❌ {class_name}: Hết chỗ (skipped)")
+                    # Skip if no class name or registration code
+                    if not class_name or not registration_code:
                         continue
                     
-                    # Has seats!
-                    logger.info(f"   ✅ {class_name}: CÓ CHỖ! ({seats_text})")
+                    schedule = cells[3].text.strip() if len(cells) > 3 else ""
+                    room = cells[5].text.strip() if len(cells) > 5 else ""
+                    location = cells[6].text.strip() if len(cells) > 6 else ""
+                    instructor = cells[7].text.strip() if len(cells) > 7 else ""
                     
-                    # Try to parse number
-                    available_seats = 1
-                    if seats_text.isdigit():
-                        available_seats = int(seats_text)
+                    logger.info(f"   ✅ {class_name}: CÓ CHỖ!")
                     
+                    # Create Course object
                     course = Course(
                         code=course_code,
                         name=f"{course_code} - {course_name}",
                         class_name=class_name,
                         registration_code=registration_code,
-                        available_seats=available_seats,
+                        available_seats=1,  # We know it has seats (no "Hết chỗ")
                         total_seats=0,
                         schedule=schedule,
                         room=room,
@@ -161,7 +165,11 @@ class CourseScraper:
                     logger.error(f"❌ Error parsing row: {e}")
                     continue
             
+            logger.info(f"✅ Parsed {len(courses)} classes with available seats")
+            
         except Exception as e:
             logger.error(f"❌ Error in _parse_course_detail: {e}")
+            import traceback
+            traceback.print_exc()
         
         return courses
