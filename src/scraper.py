@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common. by import By
+from selenium.webdriver. common. by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from . models import Course
@@ -18,7 +18,7 @@ MIN_REQUIRED_CELLS = 10  # Minimum cells needed for valid course row
 class CourseScraper: 
     """Scraper for DTU course information."""
     
-    def __init__(self, config: dict):
+    def __init__(self, config:  dict):
         """Initialize scraper with configuration."""
         self.config = config
         self.driver: Optional[webdriver.Chrome] = None
@@ -30,7 +30,7 @@ class CourseScraper:
         
         if self.config.get('headless', True):
             chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--no-sandbox')
+            chrome_options. add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
         
@@ -52,7 +52,7 @@ class CourseScraper:
             
             courses_config = self.config.get('courses_to_monitor', [])
             
-            if not courses_config:
+            if not courses_config: 
                 logger.warning("No courses to monitor!")
                 return []
             
@@ -63,12 +63,12 @@ class CourseScraper:
                 url = course_config['url']
                 name = course_config.get('name', '')
                 
-                logger.info(f"Scraping {code} - {name}")
-                logger.info(f"URL: {url}")
+                logger. info(f"Scraping {code} - {name}")
+                logger.info(f"URL:  {url}")
                 
                 try:
                     # Go directly to detail page
-                    self.driver. get(url)
+                    self.driver.get(url)
                     time.sleep(3)
                     
                     # Parse the class table
@@ -77,21 +77,21 @@ class CourseScraper:
                     if courses:
                         all_courses.extend(courses)
                         logger.info(f"Found {len(courses)} classes with seats for {code}")
-                    else: 
+                    else:
                         logger.info(f"No available seats for {code}")
                         
-                except Exception as e: 
-                    logger.error(f" Error scraping {code}: {e}")
+                except Exception as e:
+                    logger. error(f"Error scraping {code}: {e}")
                     continue
-        
+            
             logger.info(f"Total classes with seats: {len(all_courses)}")
             
         except Exception as e:
             logger.error(f"Scraping failed: {e}")
             
         finally:
-            if self. driver:
-                self.driver. quit()
+            if self.driver:
+                self.driver.quit()
                 logger.info("Chrome WebDriver closed")
         
         return all_courses
@@ -100,43 +100,47 @@ class CourseScraper:
         """Parse course detail page table."""
         courses = []
         
-        try: 
+        try:
             # Wait for table
-            wait = WebDriverWait(self. driver, 10)
+            wait = WebDriverWait(self.driver, 10)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
             
             # Find all table rows with td elements
-            rows = self. driver.find_elements(By. XPATH, "//table//tr[td]")
+            rows = self.driver.find_elements(By.XPATH, "//table//tr[td]")
             
-            logger.info(f"📊 Found {len(rows)} rows")
+            logger.info(f"Found {len(rows)} rows")
             
             for row in rows:
                 try:
-                    cells = row. find_elements(By.TAG_NAME, "td")
+                    cells = row.find_elements(By.TAG_NAME, "td")
                     
                     # Need at least MIN_REQUIRED_CELLS for valid row
                     if len(cells) < MIN_REQUIRED_CELLS:
                         continue
                     
                     # Extract basic info
-                    class_name = cells[0].text.strip()
+                    class_name = cells[0].text. strip()
                     registration_code = cells[1].text.strip()
                     
                     if not class_name or not registration_code:
                         continue
                     
                     # KEY:  Check column 3 for "Số chỗ Còn lại"
-                    seats_cell = cells[3]
-                    seats_text = seats_cell. text.strip()
+                    seats_text = cells[3].text.strip()
                     
-                    # If "Hết chỗ" → SKIP!
+                    # 1. If "Hết chỗ" → SKIP! 
                     if "Hết chỗ" in seats_text:
-                        logger. info(f"{class_name}: Hết chỗ (skipped)")
+                        logger.info(f"   {class_name}: Hết chỗ (skipped)")
                         continue
                     
-                    # No "Hết chỗ" AND has text → HAS SEATS!
+                    # 2. If NOT a number → SKIP! 
+                    if not seats_text.isdigit():
+                        logger.info(f"   {class_name}: cells[3]='{seats_text}' không phải số - skipped")
+                        continue
+                    
+                    # 3. Only reach here if it's a NUMBER → HAS SEATS!
                     available_seats = int(seats_text)
-                    logger.info(f"{class_name}: CÓ CHỖ!  ({availabel_seat}")
+                    logger.info(f"{class_name}:  CÓ {available_seats} CHỖ!")
                     
                     # Extract other data
                     schedule = cells[6].text.strip() if len(cells) > 6 else ""  # Giờ học
@@ -160,7 +164,7 @@ class CourseScraper:
                     
                     courses.append(course)
                     
-                except Exception as e:
+                except Exception as e: 
                     logger.error(f"Error parsing row: {e}")
                     continue
             
@@ -169,6 +173,6 @@ class CourseScraper:
         except Exception as e:
             logger.error(f"Error in _parse_course_detail: {e}")
             import traceback
-            traceback.print_exc()
+            traceback. print_exc()
         
         return courses
