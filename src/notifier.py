@@ -71,43 +71,38 @@ class TelegramNotifier:
             return False
 
     def _format_seat_alert(self, course_data: Dict[str, Any], 
-                          seat_change: Dict[str, Any]) -> str:
+                          seat_change: Dict[str, Any] = None) -> str:
         """Format seat availability alert message.
         
         Args:
             course_data: Course information
-            seat_change: Seat change details
+            seat_change: Seat change details (optional for backward compatibility)
             
         Returns:
             Formatted message string
         """
-        previous_seats = seat_change.get('previous_seats', 0)
-        current_seats = seat_change.get('current_seats', 0)
-        seats_added = current_seats - previous_seats
+        # New format as per requirements
+        course_code = course_data.get('course_code', 'N/A')
+        course_name = course_data.get('course_name', course_code)
+        class_name = course_data.get('class_name', 'N/A')
+        schedule = course_data.get('schedule', '')
+        room = course_data.get('room', '')
+        location = course_data.get('location', '')
         
-        message = "🎓 <b>Seat Available Alert!</b>\n\n"
-        message += f"<b>Course:</b> {course_data.get('course_code', 'N/A')} - {course_data.get('course_name', 'N/A')}\n"
-        message += f"<b>Class Code:</b> <code>{course_data.get('class_code', 'N/A')}</code>\n\n"
+        message = f"🎯 <b>{course_code} CÓ CHỖ!</b>\n\n"
+        message += f"📚 {course_name}\n"
+        message += f"🏫 Lớp: {class_name}\n"
+        message += f"💺 Còn chỗ trống!\n\n"
         
-        message += f"📊 <b>Seat Update:</b>\n"
-        message += f"  • Previous: {previous_seats}\n"
-        message += f"  • Current: <b>{current_seats}</b>\n"
-        message += f"  • Added: <b>+{seats_added}</b>\n"
-        message += f"  • Capacity: {course_data.get('total_capacity', 'N/A')}\n\n"
+        if schedule:
+            message += f"⏰ {schedule}\n"
         
-        if course_data.get('schedule'):
-            message += f"🕐 <b>Schedule:</b> {course_data.get('schedule')}\n"
+        if room or location:
+            room_location = f"{room} - {location}" if (room and location) else (room or location)
+            message += f"📍 {room_location}\n\n"
         
-        if course_data.get('room'):
-            message += f"🏫 <b>Room:</b> {course_data.get('room')}\n"
-        
-        if course_data.get('instructor'):
-            message += f"👨‍🏫 <b>Instructor:</b> {course_data.get('instructor')}\n"
-        
-        if course_data.get('status'):
-            message += f"📝 <b>Status:</b> {course_data.get('status')}\n"
-        
-        message += f"\n⏰ <i>Detected at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>"
+        message += f"👉 Đăng ký ngay!\n\n"
+        message += f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
         return message
 

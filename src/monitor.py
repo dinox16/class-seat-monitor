@@ -57,8 +57,13 @@ class SeatMonitor:
     def _initialize_monitored_courses(self):
         """Add courses from configuration to monitoring list."""
         for course in self.config.courses_to_monitor:
-            course_code = course.get('course_code')
-            threshold = course.get('notify_when_seats_gt', 0)
+            # Handle both string format and dict format for backward compatibility
+            if isinstance(course, str):
+                course_code = course
+                threshold = 0
+            else:
+                course_code = course.get('course_code')
+                threshold = course.get('notify_when_seats_gt', 0)
             
             if course_code:
                 self.db.add_monitored_course(course_code, threshold)
@@ -74,12 +79,14 @@ class SeatMonitor:
         Returns:
             True if notification was sent, False otherwise
         """
-        # Save course data and check for changes
+        # Save course data
         self.db.save_course_data(course)
         
         # Check if this course is monitored
         course_code = course.get('course_code')
         class_code = course.get('class_code')
+        has_seats = course.get('has_seats', False)
+        seats_status = course.get('seats_available_text', 'Hết chỗ')
         
         monitored_course = next(
             (m for m in monitored if m['course_code'] == course_code),
@@ -87,29 +94,30 @@ class SeatMonitor:
         )
         
         if not monitored_course:
+            # Update notification status even if not monitored
+            self.db.update_notification_status(class_code, seats_status)
             return False
         
-        # Check for seat changes
-        seat_change = self.db.get_latest_seat_change(class_code)
+        # Check if we should send notification based on "Hết chỗ" status
+        should_notify = self.db.should_send_notification(class_code, has_seats)
         
-        if seat_change:
-            # Check if change meets notification threshold
-            threshold = monitored_course.get('notify_when_seats_gt', 0)
-            current_seats = seat_change.get('current_seats', 0)
+        if should_notify:
+            logger.info(f"🔔 Sending notification for {course_code} - {course.get('class_name')}")
             
-            if current_seats > threshold:
-                logger.info(f"Seat change detected for {course_code}: "
-                          f"{seat_change['previous_seats']} -> {current_seats}")
-                
-                # Send notification
-                send_notification_sync(
-                    self.notifier,
-                    'send_seat_alert',
-                    course,
-                    seat_change
-                )
-                
+            # Send notification
+            success = send_notification_sync(
+                self.notifier,
+                'send_seat_alert',
+                course
+            )
+            
+            if success:
+                # Mark notification as sent
+                self.db.mark_notification_sent(class_code, seats_status)
                 return True
+        else:
+            # Update status without sending notification
+            self.db.update_notification_status(class_code, seats_status)
         
         return False
 

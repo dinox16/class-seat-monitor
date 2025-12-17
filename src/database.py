@@ -44,11 +44,15 @@ class Database:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 course_code TEXT NOT NULL,
                 course_name TEXT,
+                class_name TEXT,
                 class_code TEXT UNIQUE NOT NULL,
                 available_seats INTEGER,
+                seats_available_text TEXT,
+                has_seats BOOLEAN,
                 total_capacity INTEGER,
                 schedule TEXT,
                 room TEXT,
+                location TEXT,
                 instructor TEXT,
                 status TEXT,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -75,6 +79,17 @@ class Database:
                 notify_when_seats_gt INTEGER DEFAULT 0,
                 is_active BOOLEAN DEFAULT 1,
                 added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Create notification tracking table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS notification_tracking (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_code TEXT UNIQUE NOT NULL,
+                last_notified_at TIMESTAMP,
+                last_seats_status TEXT,
+                notification_sent BOOLEAN DEFAULT 0
             )
         """)
         
@@ -118,17 +133,22 @@ class Database:
                 # Update existing course
                 cursor.execute("""
                     UPDATE courses 
-                    SET course_code = ?, course_name = ?, available_seats = ?,
-                        total_capacity = ?, schedule = ?, room = ?,
+                    SET course_code = ?, course_name = ?, class_name = ?,
+                        available_seats = ?, seats_available_text = ?, has_seats = ?,
+                        total_capacity = ?, schedule = ?, room = ?, location = ?,
                         instructor = ?, status = ?, last_updated = ?
                     WHERE class_code = ?
                 """, (
                     course_data.get('course_code'),
                     course_data.get('course_name'),
+                    course_data.get('class_name'),
                     course_data.get('available_seats'),
+                    course_data.get('seats_available_text'),
+                    course_data.get('has_seats', False),
                     course_data.get('total_capacity'),
                     course_data.get('schedule'),
                     course_data.get('room'),
+                    course_data.get('location'),
                     course_data.get('instructor'),
                     course_data.get('status'),
                     datetime.now(),
@@ -149,17 +169,22 @@ class Database:
                 # Insert new course
                 cursor.execute("""
                     INSERT INTO courses 
-                    (course_code, course_name, class_code, available_seats, 
-                     total_capacity, schedule, room, instructor, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (course_code, course_name, class_name, class_code, available_seats,
+                     seats_available_text, has_seats, total_capacity, schedule, room,
+                     location, instructor, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     course_data.get('course_code'),
                     course_data.get('course_name'),
+                    course_data.get('class_name'),
                     course_data['class_code'],
                     course_data.get('available_seats'),
+                    course_data.get('seats_available_text'),
+                    course_data.get('has_seats', False),
                     course_data.get('total_capacity'),
                     course_data.get('schedule'),
                     course_data.get('room'),
+                    course_data.get('location'),
                     course_data.get('instructor'),
                     course_data.get('status')
                 ))
@@ -376,3 +401,110 @@ class Database:
         conn.close()
         
         return courses
+    
+    def should_send_notification(self, class_code: str, has_seats: bool) -> bool:
+        """Check if notification should be sent for this class.
+        
+        Args:
+            class_code: Class registration code
+            has_seats: Whether the class currently has seats
+            
+        Returns:
+            True if notification should be sent
+        """
+        conn = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            # Get notification tracking record
+            cursor.execute("""
+                SELECT last_seats_status, notification_sent
+                FROM notification_tracking
+                WHERE class_code = ?
+            """, (class_code,))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                last_status = result[0]
+                notification_sent = result[1]
+                
+                # Send notification if:
+                # 1. Current status is "has seats" AND
+                # 2. Either no notification was sent OR last status was "no seats"
+                if has_seats and (not notification_sent or last_status == "Hết chỗ"):
+                    return True
+                else:
+                    return False
+            else:
+                # First time seeing this class, send notification if has seats
+                return has_seats
+                
+        except Exception as e:
+            logger.error(f"Error checking notification status: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+    
+    def mark_notification_sent(self, class_code: str, seats_status: str):
+        """Mark that notification was sent for this class.
+        
+        Args:
+            class_code: Class registration code
+            seats_status: Current seats status text
+        """
+        conn = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT OR REPLACE INTO notification_tracking
+                (class_code, last_notified_at, last_seats_status, notification_sent)
+                VALUES (?, ?, ?, ?)
+            """, (
+                class_code,
+                datetime.now(),
+                seats_status,
+                1 if seats_status != "Hết chỗ" else 0
+            ))
+            
+            conn.commit()
+            
+        except Exception as e:
+            logger.error(f"Error marking notification sent: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    def update_notification_status(self, class_code: str, seats_status: str):
+        """Update notification status without sending notification.
+        
+        Args:
+            class_code: Class registration code
+            seats_status: Current seats status text
+        """
+        conn = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT OR REPLACE INTO notification_tracking
+                (class_code, last_seats_status, notification_sent)
+                VALUES (?, ?, ?)
+            """, (
+                class_code,
+                seats_status,
+                0 if seats_status == "Hết chỗ" else 1
+            ))
+            
+            conn.commit()
+            
+        except Exception as e:
+            logger.error(f"Error updating notification status: {e}")
+        finally:
+            if conn:
+                conn.close()
