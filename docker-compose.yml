@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  seat-monitor:
+    build: .
+    container_name: class-seat-monitor
+    restart: unless-stopped
+    
+    volumes:
+      # Mount data directory for database persistence
+      - ./data:/app/data
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount config file
+      - ./config.yaml:/app/config.yaml:ro
+      # Mount .env file if it exists
+      - ./.env:/app/.env:ro
+    
+    environment:
+      # Telegram configuration
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_IDS=${TELEGRAM_CHAT_IDS}
+      
+      # Monitoring configuration
+      - MONITORING_INTERVAL_MINUTES=${MONITORING_INTERVAL_MINUTES:-5}
+      
+      # Database configuration
+      - DATABASE_PATH=${DATABASE_PATH:-data/courses.db}
+      
+      # Logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FILE=${LOG_FILE:-logs/monitor.log}
+      
+      # Scraper configuration
+      - SCRAPER_HEADLESS=${SCRAPER_HEADLESS:-true}
+      - SCRAPER_TIMEOUT=${SCRAPER_TIMEOUT:-30}
+    
+    # Security options
+    security_opt:
+      - seccomp:unconfined
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
