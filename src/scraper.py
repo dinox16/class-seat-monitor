@@ -144,13 +144,6 @@ class CourseScraper:
                     location = cells[8].text.strip() if len(cells) > 8 else ""  # Địa điểm
                     instructor = cells[9].text.strip() if len(cells) > 9 else "" # Giảng viên
                     
-                    # Try to parse seat number
-                    if seats_text.isdigit():
-                        available_seats = int(seats_text)
-                    else:
-                        # Has non-numeric text (but not "Hết chỗ"), default to 1
-                        available_seats = 1
-                    
                     course = Course(
                         code=course_code,
                         name=f"{course_code} - {course_name}",
