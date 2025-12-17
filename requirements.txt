@@ -1,4 +1,4 @@
-selenium==4.16.0
+selenium==4.15.0
 beautifulsoup4==4.12.2
 python-telegram-bot==20.7
 APScheduler==3.10.4

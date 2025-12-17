@@ -50,7 +50,11 @@ logs/*.log
 # Selenium
 *.log
 chromedriver
+chromedriver.exe
 geckodriver
+.wdm/
+*.html
+debug_*.html
 
 # Temporary files
 *.tmp
