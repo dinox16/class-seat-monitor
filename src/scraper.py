@@ -122,13 +122,13 @@ class CourseScraper:
                     # Extract cells
                     class_name = cells[0].text.strip()
                     registration_code = cells[1].text.strip()
-                    seats_text = cells[3].text.strip()  # Column "Số chỗ Còn lại"
+                    seats_text = cells[3].text.strip()  # Column "Số chỗ Còn lại" (Available seats)
                     schedule = cells[6].text.strip()
                     room = cells[7].text.strip()
                     location = cells[8].text.strip()
                     instructor = cells[9].text.strip()
                     
-                    # KEY LOGIC: If NOT "Hết chỗ" → NOTIFY!
+                    # KEY LOGIC: If NOT "Hết chỗ" (No seats available) → NOTIFY!
                     if "Hết chỗ" in seats_text:
                         logger.info(f"   ❌ {class_name}: Hết chỗ (skipped)")
                         continue
