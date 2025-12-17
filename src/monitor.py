@@ -64,6 +64,85 @@ class SeatMonitor:
                 self.db.add_monitored_course(course_code, threshold)
                 logger.info(f"Added {course_code} to monitoring (threshold: {threshold})")
 
+    def _process_course(self, course: Dict[str, Any], monitored: List[Dict[str, Any]]) -> bool:
+        """Process a single course for monitoring.
+        
+        Args:
+            course: Course data dictionary
+            monitored: List of monitored courses
+            
+        Returns:
+            True if notification was sent, False otherwise
+        """
+        # Save course data and check for changes
+        self.db.save_course_data(course)
+        
+        # Check if this course is monitored
+        course_code = course.get('course_code')
+        class_code = course.get('class_code')
+        
+        monitored_course = next(
+            (m for m in monitored if m['course_code'] == course_code),
+            None
+        )
+        
+        if not monitored_course:
+            return False
+        
+        # Check for seat changes
+        seat_change = self.db.get_latest_seat_change(class_code)
+        
+        if seat_change:
+            # Check if change meets notification threshold
+            threshold = monitored_course.get('notify_when_seats_gt', 0)
+            current_seats = seat_change.get('current_seats', 0)
+            
+            if current_seats > threshold:
+                logger.info(f"Seat change detected for {course_code}: "
+                          f"{seat_change['previous_seats']} -> {current_seats}")
+                
+                # Send notification
+                send_notification_sync(
+                    self.notifier,
+                    'send_seat_alert',
+                    course,
+                    seat_change
+                )
+                
+                return True
+        
+        return False
+
+    def check_once(self):
+        """Run a single monitoring check (for scheduled tasks)."""
+        logger.info("Running single monitoring check")
+        
+        # Get monitored courses
+        monitored = self.db.get_monitored_courses()
+        
+        if not monitored:
+            logger.warning("No courses being monitored")
+            return
+        
+        logger.info(f"Monitoring {len(monitored)} courses")
+        
+        # Scrape current data
+        courses = self.scraper.scrape_courses()
+        
+        if not courses:
+            logger.warning("No courses scraped")
+            return
+        
+        logger.info(f"Scraped {len(courses)} courses")
+        
+        # Process each course
+        changes_detected = 0
+        for course in courses:
+            if self._process_course(course, monitored):
+                changes_detected += 1
+        
+        logger.info(f"Check complete. Changes detected: {changes_detected}")
+
     def check_and_notify(self):
         """Main monitoring cycle - scrape, compare, and notify."""
         try:
@@ -97,42 +176,8 @@ class SeatMonitor:
             # Process each course
             changes_detected = 0
             for course in courses:
-                # Save course data and check for changes
-                self.db.save_course_data(course)
-                
-                # Check if this course is monitored
-                course_code = course.get('course_code')
-                class_code = course.get('class_code')
-                
-                monitored_course = next(
-                    (m for m in monitored if m['course_code'] == course_code),
-                    None
-                )
-                
-                if not monitored_course:
-                    continue
-                
-                # Check for seat changes
-                seat_change = self.db.get_latest_seat_change(class_code)
-                
-                if seat_change:
-                    # Check if change meets notification threshold
-                    threshold = monitored_course.get('notify_when_seats_gt', 0)
-                    current_seats = seat_change.get('current_seats', 0)
-                    
-                    if current_seats > threshold:
-                        logger.info(f"Seat change detected for {course_code}: "
-                                  f"{seat_change['previous_seats']} -> {current_seats}")
-                        
-                        # Send notification
-                        send_notification_sync(
-                            self.notifier,
-                            'send_seat_alert',
-                            course,
-                            seat_change
-                        )
-                        
-                        changes_detected += 1
+                if self._process_course(course, monitored):
+                    changes_detected += 1
             
             logger.info(f"Monitoring cycle complete. Changes detected: {changes_detected}")
             
