@@ -8,19 +8,16 @@ monitoring:
   target_url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_coursesearch"
 
 courses_to_monitor:
-  - course_code: "CS 403"
-    notify_when_seats_gt: 0
-  - course_code: "HIS 364"
-    notify_when_seats_gt: 0
-  - course_code: "ENG 217"
-    notify_when_seats_gt: 0
+  - "CS 403"
+  - "ENG 217"
+  - "HIS 362"
 
 scraper:
   academic_year: "2025-2026"
   semester: "Học Kỳ II"
-  subjects: ["CS", "HIS","ENG"]
+  subjects: ["CS", "ENG", "HIS"]
   headless: true
-  timeout: 30
+  timeout: 60
 
 database:
   path: "data/courses.db"
