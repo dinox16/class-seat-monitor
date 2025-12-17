@@ -135,43 +135,53 @@ class CourseScraper:
         
         logger.info("🤖 Starting monitoring check")
         logger.info(f"📡 Navigating to DTU website...")
-        self.driver.get(self.target_url)
         
-        # Wait for page to load
-        time.sleep(3)
-        
-        # Apply filters to search for courses
-        try:
-            self._apply_filters()
-        except Exception as e:
-            logger.error(f"Failed to apply filters: {e}")
-            raise
-        
-        # Get course links from search results
-        course_links = self._get_course_links()
-        
-        if not course_links:
-            logger.warning("No courses found in search results")
-            return []
-        
-        logger.info(f"✅ Found {len(course_links)} course(s) to check")
-        
-        # Visit each course detail page and parse classes
         all_courses = []
-        for course_code, course_url in course_links.items():
+        
+        # Search for each subject separately
+        for subject in self.subjects:
             try:
-                logger.info(f"🔗 Opening detail page for {course_code}...")
-                courses = self._scrape_course_detail_page(course_code, course_url)
-                all_courses.extend(courses)
+                logger.info(f"🔍 Searching for {subject} courses...")
+                
+                # Navigate to search page for each subject
+                self.driver.get(self.target_url)
+                time.sleep(3)
+                
+                # Apply filters to search for this subject
+                self._apply_filters(subject)
+                
+                # Get course links from search results
+                course_links = self._get_course_links()
+                
+                if not course_links:
+                    logger.warning(f"No {subject} courses found in search results")
+                    continue
+                
+                logger.info(f"✅ Found {len(course_links)} {subject} course(s) to check")
+                
+                # Visit each course detail page and parse classes
+                for course_code, course_url in course_links.items():
+                    try:
+                        logger.info(f"🔗 Opening detail page for {course_code}...")
+                        courses = self._scrape_course_detail_page(course_code, course_url)
+                        all_courses.extend(courses)
+                    except Exception as e:
+                        logger.error(f"Error scraping {course_code}: {e}")
+                        continue
+                        
             except Exception as e:
-                logger.error(f"Error scraping {course_code}: {e}")
+                logger.error(f"Error searching for {subject} courses: {e}")
                 continue
         
         logger.info(f"✅ Successfully scraped {len(all_courses)} classes total")
         return all_courses
 
-    def _apply_filters(self):
-        """Apply filters for academic year, semester, and subject."""
+    def _apply_filters(self, subject: str):
+        """Apply filters for academic year, semester, and subject.
+        
+        Args:
+            subject: Subject code to search for
+        """
         from selenium.webdriver.support.ui import Select
         
         try:
@@ -208,9 +218,8 @@ class CourseScraper:
                 except:
                     continue
             
-            # Find subject input field and enter first subject
-            subject_to_search = self.subjects[0] if self.subjects else "CS"
-            logger.info(f"🔍 Searching for {subject_to_search} courses...")
+            # Find subject input field and enter the subject
+            logger.info(f"🔍 Entering subject code: {subject}")
             
             # Try to find the subject input by common input attributes
             inputs = self.driver.find_elements(By.TAG_NAME, "input")
@@ -219,8 +228,8 @@ class CourseScraper:
                 if input_type == 'text':
                     try:
                         input_elem.clear()
-                        input_elem.send_keys(subject_to_search)
-                        logger.info(f"Entered subject code: {subject_to_search}")
+                        input_elem.send_keys(subject)
+                        logger.info(f"Entered subject code: {subject}")
                         break
                     except:
                         continue
