@@ -39,6 +39,18 @@ class Config:
 
     def _apply_env_overrides(self):
         """Apply environment variable overrides to configuration."""
+        # Ensure required keys exist
+        if 'telegram' not in self.config_data:
+            self.config_data['telegram'] = {}
+        if 'monitoring' not in self.config_data:
+            self.config_data['monitoring'] = {}
+        if 'database' not in self.config_data:
+            self.config_data['database'] = {}
+        if 'logging' not in self.config_data:
+            self.config_data['logging'] = {}
+        if 'scraper' not in self.config_data:
+            self.config_data['scraper'] = {}
+        
         # Telegram configuration
         if os.getenv('TELEGRAM_BOT_TOKEN'):
             self.config_data['telegram']['bot_token'] = os.getenv('TELEGRAM_BOT_TOKEN')

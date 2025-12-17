@@ -263,11 +263,5 @@ def send_notification_sync(notifier: TelegramNotifier, method: str, *args, **kwa
     Returns:
         Result from the async method
     """
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
     method_func = getattr(notifier, method)
-    return loop.run_until_complete(method_func(*args, **kwargs))
+    return asyncio.run(method_func(*args, **kwargs))

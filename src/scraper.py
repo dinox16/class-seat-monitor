@@ -79,19 +79,18 @@ class CourseScraper:
                 logger.info(f"Starting scrape attempt {attempt + 1}/{retry_count}")
                 courses = self._scrape_with_selenium()
                 logger.info(f"Successfully scraped {len(courses)} courses")
+                self._close_driver()
                 return courses
                 
             except Exception as e:
                 logger.error(f"Scraping attempt {attempt + 1} failed: {e}")
+                self._close_driver()
                 if attempt < retry_count - 1:
                     wait_time = (attempt + 1) * 5
                     logger.info(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
                 else:
                     logger.error("All scraping attempts failed")
-                    
-            finally:
-                self._close_driver()
         
         return []
 

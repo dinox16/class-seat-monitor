@@ -102,6 +102,7 @@ class Database:
         Returns:
             True if successful, False otherwise
         """
+        conn = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
@@ -174,12 +175,14 @@ class Database:
                 ))
             
             conn.commit()
-            conn.close()
             return True
             
         except Exception as e:
             logger.error(f"Error saving course data: {e}")
             return False
+        finally:
+            if conn:
+                conn.close()
 
     def get_seat_changes(self, class_code: str) -> List[Dict[str, Any]]:
         """Get seat availability changes for a course.
@@ -258,6 +261,7 @@ class Database:
         Returns:
             True if successful, False otherwise
         """
+        conn = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
@@ -269,13 +273,15 @@ class Database:
             """, (course_code, notify_threshold))
             
             conn.commit()
-            conn.close()
             logger.info(f"Added course {course_code} to monitoring list")
             return True
             
         except Exception as e:
             logger.error(f"Error adding monitored course: {e}")
             return False
+        finally:
+            if conn:
+                conn.close()
 
     def remove_monitored_course(self, course_code: str) -> bool:
         """Remove a course from the monitoring watchlist.
@@ -286,6 +292,7 @@ class Database:
         Returns:
             True if successful, False otherwise
         """
+        conn = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
@@ -295,13 +302,15 @@ class Database:
             """, (course_code,))
             
             conn.commit()
-            conn.close()
             logger.info(f"Removed course {course_code} from monitoring list")
             return True
             
         except Exception as e:
             logger.error(f"Error removing monitored course: {e}")
             return False
+        finally:
+            if conn:
+                conn.close()
 
     def get_monitored_courses(self) -> List[Dict[str, Any]]:
         """Get list of monitored courses.
