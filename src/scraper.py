@@ -136,7 +136,7 @@ class CourseScraper:
                     
                     # No "Hết chỗ" AND has text → HAS SEATS!
                     available_seats = int(seats_text)
-                    logger.info(f"{class_name}: CÓ CHỖ!  ({availabel_seat{)")
+                    logger.info(f"{class_name}: CÓ CHỖ!  ({availabel_seat}")
                     
                     # Extract other data
                     schedule = cells[6].text.strip() if len(cells) > 6 else ""  # Giờ học
