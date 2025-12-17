@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.config import Config
 from src.monitor import SeatMonitor
+from src.notifier import TelegramNotifier, send_notification_sync
 
 
 def setup_logging():
@@ -31,11 +32,11 @@ def setup_logging():
 
 def main():
     """Run a single monitoring check."""
+    # Setup logging first (before any exceptions can occur)
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
     try:
-        # Setup logging
-        setup_logging()
-        logger = logging.getLogger(__name__)
-        
         logger.info("=" * 60)
         logger.info("Starting single monitoring check")
         logger.info("=" * 60)
@@ -53,14 +54,11 @@ def main():
         return 0
         
     except Exception as e:
-        logger = logging.getLogger(__name__)
         logger.error(f"Fatal error during monitoring check: {e}", exc_info=True)
         
         # Try to send error notification
         try:
-            from src.notifier import send_notification_sync
             config = Config("config.yaml")
-            from src.notifier import TelegramNotifier
             notifier = TelegramNotifier(
                 config.telegram_bot_token,
                 config.telegram_chat_ids
@@ -71,8 +69,8 @@ def main():
                 "Fatal monitoring error",
                 str(e)
             )
-        except:
-            pass  # Silently fail if notification cannot be sent
+        except Exception as notify_error:
+            logger.error(f"Failed to send error notification: {notify_error}")
         
         return 1
 

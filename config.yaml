@@ -10,8 +10,8 @@ monitoring:
 courses_to_monitor:
   - course_code: "CS 403"
     notify_when_seats_gt: 0
-  - course_code: "CS 100"
-    notify_when_seats_gt: 5
+  - course_code: "HIS 362"
+    notify_when_seats_gt: 0
 
 scraper:
   academic_year: "2025-2026"
