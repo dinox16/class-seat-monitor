@@ -16,7 +16,7 @@ courses_to_monitor:
 scraper:
   academic_year: "2025-2026"
   semester: "Học Kỳ II"
-  subject: "CS"
+  subjects: ["CS", "HIS"]
   headless: true
   timeout: 30
 

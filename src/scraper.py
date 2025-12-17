@@ -1,6 +1,7 @@
 """Web scraper for Duy Tan University course registration system."""
 
 import logging
+import os
 import time
 from typing import List, Dict, Optional, Any
 from selenium import webdriver
@@ -30,7 +31,16 @@ class CourseScraper:
         self.target_url = config.get('target_url', '')
         self.academic_year = config.get('academic_year', '2025-2026')
         self.semester = config.get('semester', 'Học Kỳ II')
-        self.subject = config.get('subject', 'CS')
+        
+        # Support both single subject and multiple subjects
+        subjects = config.get('subjects') or config.get('subject')
+        if isinstance(subjects, str):
+            self.subjects = [subjects]
+        elif isinstance(subjects, list):
+            self.subjects = subjects
+        else:
+            self.subjects = ['CS']  # Default fallback
+        
         self.headless = config.get('headless', True)
         self.timeout = config.get('timeout', 30)
         self.driver = None
@@ -49,8 +59,29 @@ class CourseScraper:
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        # Use webdriver-manager to automatically handle driver installation
-        service = Service(ChromeDriverManager().install())
+        # Try to find chromedriver - check system location first (for Linux/CI)
+        chromedriver_path = None
+        system_paths = [
+            '/usr/bin/chromedriver',  # Linux system installation
+            '/usr/local/bin/chromedriver',  # Alternative Linux location
+        ]
+        
+        for path in system_paths:
+            if os.path.exists(path):
+                chromedriver_path = path
+                logger.info(f"Using system chromedriver at {path}")
+                break
+        
+        # Use webdriver-manager as fallback
+        if not chromedriver_path:
+            try:
+                chromedriver_path = ChromeDriverManager().install()
+                logger.info("Using chromedriver from webdriver-manager")
+            except Exception as e:
+                logger.error(f"Failed to install chromedriver with webdriver-manager: {e}")
+                raise
+        
+        service = Service(chromedriver_path)
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.implicitly_wait(10)
         
@@ -252,9 +283,10 @@ class CourseScraper:
             instructor = get_text(cols[7]) if len(cols) > 7 else ""
             status = get_text(cols[8]) if len(cols) > 8 else ""
             
-            # Filter by subject if specified
-            if self.subject and not course_code.startswith(self.subject):
-                return None
+            # Filter by subjects if specified
+            if self.subjects:
+                if not any(course_code.startswith(subject) for subject in self.subjects):
+                    return None
             
             return {
                 'course_code': course_code,
