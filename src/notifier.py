@@ -87,23 +87,23 @@ class TelegramNotifier:
         instructor = course_data.get('instructor', 'N/A')
         
         # Build message
-        message = f"🎯 <b>{course_code} CÓ CHỖ!</b>\n\n"
-        message += f"📚 {course_name}\n"
-        message += f"🏫 Lớp: {class_name}\n"
-        message += f"💺 Còn chỗ trống!\n\n"
+        message = f"<b>{course_code} CÓ CHỖ!</b>\n\n"
+        message += f"{course_name}\n"
+        message += f"Lớp: {class_name}\n"
+        message += f"Còn chỗ trống!\n\n"
         
         if schedule:
-            message += f"⏰ {schedule}\n"
+            message += f"{schedule}\n"
         
         if room or location:
             room_location = f"{room} - {location}" if (room and location) else (room or location)
-            message += f"📍 {room_location}\n"
+            message += f"{room_location}\n"
         
         if instructor:
-            message += f"👨‍🏫 {instructor}\n"
+            message += f"{instructor}\n"
         
-        message += f"\n👉 Đăng ký ngay!\n\n"
-        message += f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        message += f"\nĐăng ký ngay!\n\n"
+        message += f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
         return message
 
@@ -150,17 +150,17 @@ class TelegramNotifier:
         Returns:
             Formatted message string
         """
-        message = "📋 <b>Monitoring Summary</b>\n\n"
+        message = "<b>Monitoring Summary</b>\n\n"
         
         monitored_count = summary_data.get('monitored_courses', 0)
         total_courses = summary_data.get('total_courses', 0)
         changes_detected = summary_data.get('changes_detected', 0)
         last_check = summary_data.get('last_check', 'N/A')
         
-        message += f"🔍 <b>Monitored Courses:</b> {monitored_count}\n"
-        message += f"📚 <b>Total Courses Found:</b> {total_courses}\n"
-        message += f"🔔 <b>Changes Detected:</b> {changes_detected}\n"
-        message += f"⏰ <b>Last Check:</b> {last_check}\n"
+        message += f"<b>Monitored Courses:</b> {monitored_count}\n"
+        message += f"<b>Total Courses Found:</b> {total_courses}\n"
+        message += f"<b>Changes Detected:</b> {changes_detected}\n"
+        message += f"<b>Last Check:</b> {last_check}\n"
         
         if summary_data.get('courses'):
             message += "\n<b>Course Details:</b>\n"
@@ -184,13 +184,13 @@ class TelegramNotifier:
             return False
         
         try:
-            message = "⚠️ <b>Error Alert</b>\n\n"
+            message = "<b>Error Alert</b>\n\n"
             message += f"<b>Error:</b> {error_message}\n"
             
             if error_details:
                 message += f"\n<b>Details:</b>\n<code>{error_details}</code>\n"
             
-            message += f"\n⏰ <i>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>"
+            message += f"\n<i>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>"
             
             success = True
             for chat_id in self.chat_ids:
@@ -226,7 +226,7 @@ class TelegramNotifier:
             logger.info(f"Connected to Telegram bot: @{bot_info.username}")
             
             # Send test message
-            test_message = "✅ <b>Test Message</b>\n\nTelegram notification system is working!"
+            test_message = "<b>Test Message</b>\n\nTelegram notification system is working!"
             
             for chat_id in self.chat_ids:
                 try:
