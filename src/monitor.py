@@ -301,7 +301,7 @@ class SeatMonitor:
             print("No courses are currently being monitored")
             return
         
-        print(f"\n📋 Monitored Courses ({len(monitored)}):")
+        print(f"\nMonitored Courses ({len(monitored)}):")
         print("-" * 60)
         
         for course in monitored:
@@ -325,8 +325,8 @@ class SeatMonitor:
             if courses:
                 print(f"Scraper test passed! Found {len(courses)} classes with available seats:")
                 for course in courses[:5]:  # Show first 5
-                    print(f"  • {course.code} - {course.class_name}")
-                    print(f"    Seats: {course.available_seats}, Room: {course.room}")
+                    print(f"{course.code} - {course.class_name}")
+                    print(f"Seats: {course.available_seats}, Room: {course.room}")
                 if len(courses) > 5:
                     print(f"  ... and {len(courses) - 5} more")
             else:
