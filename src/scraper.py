@@ -14,6 +14,9 @@ from .models import Course
 
 logger = logging.getLogger(__name__)
 
+# Table structure constants
+MIN_REQUIRED_CELLS = 10  # Minimum cells needed for valid course row
+
 
 class CourseScraper:
     """Scraper for DTU course information."""
@@ -116,8 +119,8 @@ class CourseScraper:
                 try:
                     cells = row.find_elements(By.TAG_NAME, "td")
                     
-                    # Need at least 10 cells for valid row
-                    if len(cells) < 10:
+                    # Need at least MIN_REQUIRED_CELLS for valid row
+                    if len(cells) < MIN_REQUIRED_CELLS:
                         continue
                     
                     # Extract basic info
@@ -146,9 +149,14 @@ class CourseScraper:
                     instructor = cells[9].text.strip() # Giảng viên
                     
                     # Try to parse seat number
-                    available_seats = 1
                     if seats_text.isdigit():
                         available_seats = int(seats_text)
+                    elif seats_text:
+                        # Has non-numeric text (but not "Hết chỗ"), default to 1
+                        available_seats = 1
+                    else:
+                        # Empty text means available but unknown count
+                        available_seats = 1
                     
                     course = Course(
                         code=course_code,
