@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Data and logs (will be mounted as volumes)
+data/
+logs/
+
+# Documentation
+*.md
+
+# Environment
+.env
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.temp

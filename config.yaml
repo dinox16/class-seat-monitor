@@ -1,0 +1,28 @@
+telegram:
+  bot_token: "${TELEGRAM_BOT_TOKEN}"
+  chat_ids:
+    - 123456789
+
+monitoring:
+  interval_minutes: 5
+  target_url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_coursesearch"
+
+courses_to_monitor:
+  - course_code: "CS 403"
+    notify_when_seats_gt: 0
+  - course_code: "CS 100"
+    notify_when_seats_gt: 5
+
+scraper:
+  academic_year: "2025-2026"
+  semester: "Học Kỳ II"
+  subject: "CS"
+  headless: true
+  timeout: 30
+
+database:
+  path: "data/courses.db"
+
+logging:
+  level: "INFO"
+  file: "logs/monitor.log"
