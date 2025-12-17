@@ -14,7 +14,10 @@ courses_to_monitor:
   - code: "ENG 217"
     name: "English Communication"
     url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=1076&timespan=92&t=s"
-
+ 
+  - code: "ENG "
+    name: "English Communication"
+    url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=1074&timespan=92&t=s"
 telegram:
   bot_token: "${TELEGRAM_BOT_TOKEN}"
   chat_ids:
