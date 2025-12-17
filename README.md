@@ -1,23 +1,23 @@
-# 🎓 Class Seat Monitor
+#  Class Seat Monitor
 
 Monitor class seat availability on Duy Tan University course registration system with real-time Telegram notifications.
 
-## 📋 Overview
+##  Overview
 
 This application automatically monitors course seat availability on the [Duy Tan University course registration website](https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_coursesearch) and sends instant Telegram notifications when seats become available.
 
-### ✨ Features
+###  Features
 
-- 🔍 **Automated Web Scraping**: Uses Selenium to scrape course data from JavaScript-rendered pages
-- 💾 **Database Tracking**: SQLite database tracks seat changes over time
-- 📱 **Telegram Notifications**: Instant alerts when seats become available
-- ⚙️ **Configurable Monitoring**: Set thresholds and filters for specific courses
-- 🐳 **Docker Support**: Easy deployment with Docker and docker-compose
-- 🔄 **Automatic Scheduling**: Configurable check intervals (default: 5 minutes)
-- 📊 **Summary Reports**: Get periodic summaries of monitoring status
-- 🛡️ **Error Handling**: Retry logic and error notifications
+-  **Automated Web Scraping**: Uses Selenium to scrape course data from JavaScript-rendered pages
+-  **Database Tracking**: SQLite database tracks seat changes over time
+-  **Telegram Notifications**: Instant alerts when seats become available
+-  **Configurable Monitoring**: Set thresholds and filters for specific courses
+-  **Docker Support**: Easy deployment with Docker and docker-compose
+-  **Automatic Scheduling**: Configurable check intervals (default: 5 minutes)
+-  **Summary Reports**: Get periodic summaries of monitoring status
+-  **Error Handling**: Retry logic and error notifications
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 class-seat-monitor/
@@ -39,7 +39,7 @@ class-seat-monitor/
 └── README.md           # Documentation
 ```
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 
@@ -171,7 +171,7 @@ logging:
   file: "logs/monitor.log"
 ```
 
-## 💻 Usage
+##  Usage
 
 ### Command Line Interface
 
@@ -233,44 +233,44 @@ docker-compose restart
 docker-compose up -d --build
 ```
 
-## 📱 Notification Examples
+##  Notification Examples
 
 ### Seat Availability Alert
 ```
-🎓 Seat Available Alert!
+ Seat Available Alert!
 
 Course: CS 403 - Advanced Algorithms
 Class Code: CS403202502003
 
-📊 Seat Update:
+ Seat Update:
   • Previous: 0
   • Current: 5
   • Added: +5
   • Capacity: 50
 
-🕐 Schedule: T3, T5 (7:00-9:30)
-🏫 Room: H201
-👨‍🏫 Instructor: Dr. Nguyen Van A
-📝 Status: Đang Đăng Ký
+ Schedule: T3, T5 (7:00-9:30)
+ Room: H201
+ Instructor: Dr. Nguyen Van A
+ Status: Đang Đăng Ký
 
-⏰ Detected at: 2025-12-17 10:30:15
+ Detected at: 2025-12-17 10:30:15
 ```
 
 ### Monitoring Summary
 ```
-📋 Monitoring Summary
+ Monitoring Summary
 
-🔍 Monitored Courses: 2
-📚 Total Courses Found: 5
-🔔 Changes Detected: 1
-⏰ Last Check: 2025-12-17 10:30:00
+ Monitored Courses: 2
+ Total Courses Found: 5
+ Changes Detected: 1
+ Last Check: 2025-12-17 10:30:00
 
 Course Details:
   • CS 403: 5 seats
   • CS 100: 12 seats
 ```
 
-## 🔍 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -312,7 +312,7 @@ tail -f logs/monitor.log
 tail -n 100 logs/monitor.log
 ```
 
-## 🛠️ Development
+##  Development
 
 ### Project Structure
 
@@ -350,7 +350,7 @@ python -c "from src.monitor import SeatMonitor; m = SeatMonitor(); m.check_and_n
 **monitored_courses** table:
 - id, course_code, notify_when_seats_gt, is_active, added_at
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -360,22 +360,22 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 This tool is for educational purposes only. Please ensure you comply with Duy Tan University's terms of service and website usage policies. Be respectful with scraping frequency to avoid overloading the server.
 
-## 📞 Support
+##  Support
 
 If you encounter any issues or have questions:
 - Open an issue on GitHub
 - Check existing issues for solutions
 - Review logs for error details
 
-## 🎯 Future Enhancements
+##  Future Enhancements
 
 - [ ] Web dashboard for monitoring status
 - [ ] Support for multiple universities
@@ -385,7 +385,7 @@ If you encounter any issues or have questions:
 - [ ] Advanced filtering options
 - [ ] Multi-language support
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Duy Tan University for the course registration system
 - Python community for excellent libraries
@@ -393,4 +393,4 @@ If you encounter any issues or have questions:
 
 ---
 
-Made with ❤️ by the Class Seat Monitor team
+Made with by the Class Seat Monitor team
