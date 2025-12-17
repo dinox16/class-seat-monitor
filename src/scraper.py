@@ -113,7 +113,7 @@ class CourseScraper:
             # Find all table rows with td elements
             rows = self.driver.find_elements(By.XPATH, "//table//tr[td]")
             
-            logger.info(f"📊 Found {len(rows)} rows")
+            logger.info(f" Found {len(rows)} rows")
             
             for row in rows:
                 try:
@@ -136,52 +136,54 @@ class CourseScraper:
                     
                     # If "Hết chỗ" → SKIP!
                     if "Hết chỗ" in seats_text:
-                        logger.info(f"   ❌ {class_name}: Hết chỗ (skipped)")
+                        logger.info(f"{class_name}: Hết chỗ (skipped)")
                         continue
-                    
-                    # No "Hết chỗ" → HAS SEATS!
-                    logger.info(f"   ✅ {class_name}: CÓ CHỖ! ({seats_text})")
-                    
-                    # Extract other data
-                    schedule = cells[6].text.strip()  # Giờ học
-                    room = cells[7].text.strip()      # Phòng
-                    location = cells[8].text.strip()  # Địa điểm
-                    instructor = cells[9].text.strip() # Giảng viên
-                    
-                    # Try to parse seat number
-                    if seats_text.isdigit():
-                        available_seats = int(seats_text)
-                    elif seats_text:
-                        # Has non-numeric text (but not "Hết chỗ"), default to 1
-                        available_seats = 1
-                    else:
-                        # Empty text means available but unknown count
-                        available_seats = 1
-                    
-                    course = Course(
-                        code=course_code,
-                        name=f"{course_code} - {course_name}",
-                        class_name=class_name,
-                        registration_code=registration_code,
-                        available_seats=available_seats,
-                        total_seats=0,
-                        schedule=schedule,
-                        room=room,
-                        location=location,
-                        instructor=instructor,
-                        registration_status=""
-                    )
-                    
-                    courses.append(course)
+                    else{
+                        
+                        # No "Hết chỗ" → HAS SEATS!
+                        logger.info(f"{class_name}: CÓ CHỖ! ({seats_text})")
+                        
+                        # Extract other data
+                        schedule = cells[6].text.strip()  # Giờ học
+                        room = cells[7].text.strip()      # Phòng
+                        location = cells[8].text.strip()  # Địa điểm
+                        instructor = cells[9].text.strip() # Giảng viên
+                        
+                        # Try to parse seat number
+                        if seats_text.isdigit():
+                            available_seats = int(seats_text)
+                        elif seats_text:
+                            # Has non-numeric text (but not "Hết chỗ"), default to 1
+                            available_seats = 1
+                        else:
+                            # Empty text means available but unknown count
+                            available_seats = 1
+                        
+                        course = Course(
+                            code=course_code,
+                            name=f"{course_code} - {course_name}",
+                            class_name=class_name,
+                            registration_code=registration_code,
+                            available_seats=available_seats,
+                            total_seats=0,
+                            schedule=schedule,
+                            room=room,
+                            location=location,
+                            instructor=instructor,
+                            registration_status=""
+                        )
+                        
+                        courses.append(course)
+                    }
                     
                 except Exception as e:
-                    logger.error(f"❌ Error parsing row: {e}")
+                    logger.error(f"Error parsing row: {e}")
                     continue
             
-            logger.info(f"✅ Found {len(courses)} classes with available seats")
+            logger.info(f"Found {len(courses)} classes with available seats")
             
         except Exception as e:
-            logger.error(f"❌ Error in _parse_course_detail: {e}")
+            logger.error(f"Error in _parse_course_detail: {e}")
             import traceback
             traceback.print_exc()
         
