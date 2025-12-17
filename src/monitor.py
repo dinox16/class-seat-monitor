@@ -33,7 +33,7 @@ class SeatMonitor:
             'target_url': self.config.target_url,
             'academic_year': self.config.scraper_config.get('academic_year', '2025-2026'),
             'semester': self.config.scraper_config.get('semester', 'Học Kỳ II'),
-            'subject': self.config.scraper_config.get('subject', 'CS'),
+            'subjects': self.config.scraper_config.get('subjects', self.config.scraper_config.get('subject', 'CS')),
             'headless': self.config.scraper_config.get('headless', True),
             'timeout': self.config.scraper_config.get('timeout', 30)
         }
