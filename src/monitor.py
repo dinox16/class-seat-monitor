@@ -100,7 +100,7 @@ class SeatMonitor:
         should_notify = self.db.should_send_notification(class_code, has_seats)
         
         if should_notify:
-            logger.info(f"🔔 Sending notification for {course_code} - {course.get('class_name')}")
+            logger.info(f"Sending notification for {course_code} - {course.get('class_name')}")
             
             # Send notification
             success = send_notification_sync(
@@ -288,10 +288,10 @@ class SeatMonitor:
         
         if success:
             logger.info(f"Added course {course_code} to monitoring")
-            print(f"✅ Added {course_code} to monitoring list")
+            print(f"Added {course_code} to monitoring list")
         else:
             logger.error(f"Failed to add course {course_code}")
-            print(f"❌ Failed to add {course_code}")
+            print(f"Failed to add {course_code}")
 
     def list_monitored_courses(self):
         """List all monitored courses."""
@@ -318,30 +318,30 @@ class SeatMonitor:
 
     def test_scraper(self):
         """Test the scraper functionality."""
-        print("🔍 Testing scraper...")
+        print("Testing scraper...")
         try:
             courses = self.scraper.scrape_courses()
             
             if courses:
-                print(f"✅ Scraper test passed! Found {len(courses)} classes with available seats:")
+                print(f"Scraper test passed! Found {len(courses)} classes with available seats:")
                 for course in courses[:5]:  # Show first 5
                     print(f"  • {course.code} - {course.class_name}")
                     print(f"    Seats: {course.available_seats}, Room: {course.room}")
                 if len(courses) > 5:
                     print(f"  ... and {len(courses) - 5} more")
             else:
-                print("⚠️ Scraper ran successfully but found no classes with available seats")
+                print("Scraper ran successfully but found no classes with available seats")
                 
         except Exception as e:
-            print(f"❌ Scraper test failed: {e}")
+            print(f"Scraper test failed: {e}")
             logger.error(f"Scraper test error: {e}", exc_info=True)
 
     def test_telegram(self):
         """Test Telegram notifications."""
-        print("📱 Testing Telegram connection...")
+        print("Testing Telegram connection...")
         success = send_notification_sync(self.notifier, 'test_connection')
         
         if success:
-            print("✅ Telegram test passed!")
+            print("Telegram test passed!")
         else:
-            print("❌ Telegram test failed")
+            print("Telegram test failed")
