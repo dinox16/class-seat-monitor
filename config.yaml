@@ -12,11 +12,13 @@ courses_to_monitor:
     notify_when_seats_gt: 0
   - course_code: "HIS 364"
     notify_when_seats_gt: 0
+  - course_code: "ENG 217"
+    notify_when_seats_gt: 0
 
 scraper:
   academic_year: "2025-2026"
   semester: "Học Kỳ II"
-  subjects: ["CS", "HIS"]
+  subjects: ["CS", "HIS","ENG"]
   headless: true
   timeout: 30
 
