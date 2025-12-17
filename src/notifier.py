@@ -33,13 +33,11 @@ class TelegramNotifier:
             self.enabled = True
             logger.info(f"Telegram notifier initialized for {len(chat_ids)} chat(s)")
 
-    async def send_seat_alert(self, course_data: Dict[str, Any], 
-                             seat_change: Dict[str, Any]) -> bool:
+    async def send_seat_alert(self, course_data: Dict[str, Any]) -> bool:
         """Send alert when seats become available.
         
         Args:
             course_data: Dictionary with course information
-            seat_change: Dictionary with seat change details
             
         Returns:
             True if notification sent successfully
@@ -49,7 +47,7 @@ class TelegramNotifier:
             return False
         
         try:
-            message = self._format_seat_alert(course_data, seat_change)
+            message = self._format_seat_alert(course_data)
             
             success = True
             for chat_id in self.chat_ids:
@@ -70,37 +68,32 @@ class TelegramNotifier:
             logger.error(f"Error sending seat alert: {e}")
             return False
 
-    def _format_seat_alert(self, course_data: Dict[str, Any], 
-                          seat_change: Dict[str, Any] = None) -> str:
+    def _format_seat_alert(self, course_data: Dict[str, Any]) -> str:
         """Format seat availability alert message.
         
         Args:
             course_data: Course information
-            seat_change: Seat change details (optional for backward compatibility)
             
         Returns:
             Formatted message string
         """
-        # New format as per requirements
+        # Extract course information
         course_code = course_data.get('course_code', 'N/A')
         course_name = course_data.get('course_name', course_code)
         class_name = course_data.get('class_name', 'N/A')
         schedule = course_data.get('schedule', '')
         room = course_data.get('room', '')
         location = course_data.get('location', '')
+        instructor = course_data.get('instructor', 'N/A')
         
-        message = f"🎯 <b>{course_code} CÓ CHỖ!</b>\n\n"
+        # Build message
+        message = f"🎯 {course_code} CÓ CHỖ!\n\n"
         message += f"📚 {course_name}\n"
         message += f"🏫 Lớp: {class_name}\n"
         message += f"💺 Còn chỗ trống!\n\n"
-        
-        if schedule:
-            message += f"⏰ {schedule}\n"
-        
-        if room or location:
-            room_location = f"{room} - {location}" if (room and location) else (room or location)
-            message += f"📍 {room_location}\n\n"
-        
+        message += f"⏰ {schedule}\n"
+        message += f"📍 {room} - {location}\n"
+        message += f"👨‍🏫 {instructor}\n\n"
         message += f"👉 Đăng ký ngay!\n\n"
         message += f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
