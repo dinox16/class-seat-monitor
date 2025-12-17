@@ -114,43 +114,48 @@ class CourseScraper:
             
             for row in rows:
                 try:
-                    # Get all text in this row
-                    row_text = row.text
-                    
-                    # KEY LOGIC: If row contains "Hết chỗ" → SKIP!
-                    if "Hết chỗ" in row_text:
-                        logger.debug(f"   ❌ Row contains 'Hết chỗ' (skipped)")
-                        continue
-                    
-                    # No "Hết chỗ" → HAS SEATS!
                     cells = row.find_elements(By.TAG_NAME, "td")
                     
-                    # Need at least 8 cells for valid data
-                    if len(cells) < 8:
+                    # Need at least 10 cells for valid row
+                    if len(cells) < 10:
                         continue
                     
-                    # Extract data from cells
+                    # Extract basic info
                     class_name = cells[0].text.strip()
                     registration_code = cells[1].text.strip()
                     
-                    # Skip if no class name or registration code
                     if not class_name or not registration_code:
                         continue
                     
-                    schedule = cells[3].text.strip() if len(cells) > 3 else ""
-                    room = cells[5].text.strip() if len(cells) > 5 else ""
-                    location = cells[6].text.strip() if len(cells) > 6 else ""
-                    instructor = cells[7].text.strip() if len(cells) > 7 else ""
+                    # KEY: Check column 3 for "Số chỗ Còn lại"
+                    seats_cell = cells[3]
+                    seats_text = seats_cell.text.strip()
                     
-                    logger.info(f"   ✅ {class_name}: CÓ CHỖ!")
+                    # If "Hết chỗ" → SKIP!
+                    if "Hết chỗ" in seats_text:
+                        logger.info(f"   ❌ {class_name}: Hết chỗ (skipped)")
+                        continue
                     
-                    # Create Course object
+                    # No "Hết chỗ" → HAS SEATS!
+                    logger.info(f"   ✅ {class_name}: CÓ CHỖ! ({seats_text})")
+                    
+                    # Extract other data
+                    schedule = cells[6].text.strip()  # Giờ học
+                    room = cells[7].text.strip()      # Phòng
+                    location = cells[8].text.strip()  # Địa điểm
+                    instructor = cells[9].text.strip() # Giảng viên
+                    
+                    # Try to parse seat number
+                    available_seats = 1
+                    if seats_text.isdigit():
+                        available_seats = int(seats_text)
+                    
                     course = Course(
                         code=course_code,
                         name=f"{course_code} - {course_name}",
                         class_name=class_name,
                         registration_code=registration_code,
-                        available_seats=1,  # We know it has seats (no "Hết chỗ")
+                        available_seats=available_seats,
                         total_seats=0,
                         schedule=schedule,
                         room=room,
@@ -165,7 +170,7 @@ class CourseScraper:
                     logger.error(f"❌ Error parsing row: {e}")
                     continue
             
-            logger.info(f"✅ Parsed {len(courses)} classes with available seats")
+            logger.info(f"✅ Found {len(courses)} classes with available seats")
             
         except Exception as e:
             logger.error(f"❌ Error in _parse_course_detail: {e}")
