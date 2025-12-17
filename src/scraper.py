@@ -4,21 +4,18 @@ import logging
 from typing import List, Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
+from selenium.webdriver.common. by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from .models import Course
+from . models import Course
 
-logger = logging.getLogger(__name__)
+logger = logging. getLogger(__name__)
 
 # Table structure constants
 MIN_REQUIRED_CELLS = 10  # Minimum cells needed for valid course row
 
 
-class CourseScraper:
+class CourseScraper: 
     """Scraper for DTU course information."""
     
     def __init__(self, config: dict):
@@ -44,34 +41,34 @@ class CourseScraper:
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(10)
         
-        logger.info("🚀 Chrome WebDriver initialized")
+        logger.info("Chrome WebDriver initialized")
         
     def scrape_courses(self) -> List[Course]:
         """Scrape all monitored courses."""
         all_courses = []
         
-        try:
+        try: 
             self._init_driver()
             
             courses_config = self.config.get('courses_to_monitor', [])
             
             if not courses_config:
-                logger.warning("⚠️ No courses to monitor!")
+                logger.warning("No courses to monitor!")
                 return []
             
-            logger.info(f"📋 Monitoring {len(courses_config)} courses")
+            logger.info(f"Monitoring {len(courses_config)} courses")
             
             for course_config in courses_config:
                 code = course_config['code']
                 url = course_config['url']
                 name = course_config.get('name', '')
                 
-                logger.info(f"🔍 Scraping {code} - {name}")
-                logger.info(f"📡 URL: {url}")
+                logger.info(f"Scraping {code} - {name}")
+                logger.info(f"URL: {url}")
                 
                 try:
-                    # Go directly to detail page!
-                    self.driver.get(url)
+                    # Go directly to detail page
+                    self.driver. get(url)
                     time.sleep(3)
                     
                     # Parse the class table
@@ -79,45 +76,43 @@ class CourseScraper:
                     
                     if courses:
                         all_courses.extend(courses)
-                        logger.info(f"✅ Found {len(courses)} classes with seats for {code}")
-                    else:
-                        logger.info(f"ℹ️ No available seats for {code}")
+                        logger.info(f"Found {len(courses)} classes with seats for {code}")
+                    else: 
+                        logger.info(f"No available seats for {code}")
                         
-                except Exception as e:
-                    logger.error(f"❌ Error scraping {code}: {e}")
+                except Exception as e: 
+                    logger.error(f" Error scraping {code}: {e}")
                     continue
-            
-            logger.info(f"✅ Total classes with seats: {len(all_courses)}")
+        
+            logger.info(f"Total classes with seats: {len(all_courses)}")
             
         except Exception as e:
-            logger.error(f"❌ Scraping failed: {e}")
+            logger.error(f"Scraping failed: {e}")
             
         finally:
-            if self.driver:
-                self.driver.quit()
-                logger.info("🔒 Chrome WebDriver closed")
+            if self. driver:
+                self.driver. quit()
+                logger.info("Chrome WebDriver closed")
         
         return all_courses
     
-
-    
-    def _parse_course_detail(self, course_code: str, course_name: str) -> List[Course]:
+    def _parse_course_detail(self, course_code:  str, course_name: str) -> List[Course]:
         """Parse course detail page table."""
         courses = []
         
-        try:
+        try: 
             # Wait for table
-            wait = WebDriverWait(self.driver, 10)
+            wait = WebDriverWait(self. driver, 10)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
             
             # Find all table rows with td elements
-            rows = self.driver.find_elements(By.XPATH, "//table//tr[td]")
+            rows = self. driver.find_elements(By. XPATH, "//table//tr[td]")
             
-            logger.info(f" Found {len(rows)} rows")
+            logger.info(f"📊 Found {len(rows)} rows")
             
             for row in rows:
                 try:
-                    cells = row.find_elements(By.TAG_NAME, "td")
+                    cells = row. find_elements(By.TAG_NAME, "td")
                     
                     # Need at least MIN_REQUIRED_CELLS for valid row
                     if len(cells) < MIN_REQUIRED_CELLS:
@@ -130,57 +125,57 @@ class CourseScraper:
                     if not class_name or not registration_code:
                         continue
                     
-                    # KEY: Check column 3 for "Số chỗ Còn lại"
+                    # KEY:  Check column 3 for "Số chỗ Còn lại"
                     seats_cell = cells[3]
-                    seats_text = seats_cell.text.strip()
+                    seats_text = seats_cell. text.strip()
                     
                     # If "Hết chỗ" → SKIP!
                     if "Hết chỗ" in seats_text:
-                        logger.info(f"{class_name}: Hết chỗ (skipped)")
+                        logger. info(f"{class_name}: Hết chỗ (skipped)")
                         continue
-                    else{
-                        
-                        # No "Hết chỗ" → HAS SEATS!
-                        logger.info(f"{class_name}: CÓ CHỖ! ({seats_text})")
-                        
-                        # Extract other data
-                        schedule = cells[6].text.strip()  # Giờ học
-                        room = cells[7].text.strip()      # Phòng
-                        location = cells[8].text.strip()  # Địa điểm
-                        instructor = cells[9].text.strip() # Giảng viên
-                        
-                        # Try to parse seat number
-                        if seats_text.isdigit():
-                            available_seats = int(seats_text)
-                        elif seats_text:
-                            # Has non-numeric text (but not "Hết chỗ"), default to 1
-                            available_seats = 1
-                        else:
-                            # Empty text means available but unknown count
-                            available_seats = 1
-                        
-                        course = Course(
-                            code=course_code,
-                            name=f"{course_code} - {course_name}",
-                            class_name=class_name,
-                            registration_code=registration_code,
-                            available_seats=available_seats,
-                            total_seats=0,
-                            schedule=schedule,
-                            room=room,
-                            location=location,
-                            instructor=instructor,
-                            registration_status=""
-                        )
-                        
-                        courses.append(course)
-                    }
+                    
+                    # If empty seats_text → SKIP!
+                    if not seats_text:
+                        logger.info(f"{class_name}: Empty seats info (skipped)")
+                        continue
+                    
+                    # No "Hết chỗ" AND has text → HAS SEATS!
+                    logger.info(f"{class_name}: CÓ CHỖ!  ({seats_text})")
+                    
+                    # Extract other data
+                    schedule = cells[6].text.strip() if len(cells) > 6 else ""  # Giờ học
+                    room = cells[7].text.strip() if len(cells) > 7 else ""      # Phòng
+                    location = cells[8].text.strip() if len(cells) > 8 else ""  # Địa điểm
+                    instructor = cells[9].text.strip() if len(cells) > 9 else "" # Giảng viên
+                    
+                    # Try to parse seat number
+                    if seats_text.isdigit():
+                        available_seats = int(seats_text)
+                    else:
+                        # Has non-numeric text (but not "Hết chỗ"), default to 1
+                        available_seats = 1
+                    
+                    course = Course(
+                        code=course_code,
+                        name=f"{course_code} - {course_name}",
+                        class_name=class_name,
+                        registration_code=registration_code,
+                        available_seats=available_seats,
+                        total_seats=0,
+                        schedule=schedule,
+                        room=room,
+                        location=location,
+                        instructor=instructor,
+                        registration_status=""
+                    )
+                    
+                    courses.append(course)
                     
                 except Exception as e:
                     logger.error(f"Error parsing row: {e}")
                     continue
             
-            logger.info(f"Found {len(courses)} classes with available seats")
+            logger.info(f"Parsed {len(courses)} classes with available seats")
             
         except Exception as e:
             logger.error(f"Error in _parse_course_detail: {e}")
