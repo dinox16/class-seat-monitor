@@ -87,14 +87,22 @@ class TelegramNotifier:
         instructor = course_data.get('instructor', 'N/A')
         
         # Build message
-        message = f"🎯 {course_code} CÓ CHỖ!\n\n"
+        message = f"🎯 <b>{course_code} CÓ CHỖ!</b>\n\n"
         message += f"📚 {course_name}\n"
         message += f"🏫 Lớp: {class_name}\n"
         message += f"💺 Còn chỗ trống!\n\n"
-        message += f"⏰ {schedule}\n"
-        message += f"📍 {room} - {location}\n"
-        message += f"👨‍🏫 {instructor}\n\n"
-        message += f"👉 Đăng ký ngay!\n\n"
+        
+        if schedule:
+            message += f"⏰ {schedule}\n"
+        
+        if room or location:
+            room_location = f"{room} - {location}" if (room and location) else (room or location)
+            message += f"📍 {room_location}\n"
+        
+        if instructor:
+            message += f"👨‍🏫 {instructor}\n"
+        
+        message += f"\n👉 Đăng ký ngay!\n\n"
         message += f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
         return message
