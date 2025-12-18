@@ -3,10 +3,6 @@ scraper:
   timeout: 30
 
 courses_to_monitor:
-  - code: "CS 403"
-    name: "Công Nghệ Phần Mềm"
-    url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=100&timespan=92&t=s"
-  
   - code: "HIS 364"
     name: "Lịch Sử Việt Nam"
     url: "https://courses.duytan.edu.vn/Sites/Home_ChuongTrinhDaoTao.aspx?p=home_listcoursedetail&courseid=1860&timespan=92&t=s"
